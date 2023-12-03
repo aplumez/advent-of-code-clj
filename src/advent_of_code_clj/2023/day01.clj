@@ -4,7 +4,7 @@
    [clojure.string :as str]))
 
 (def input (-> (puzzle 2023 1)
-               (str/split #"\n")))
+               (str/split-lines)))
 
 (def string->number
   {"one"   "1"

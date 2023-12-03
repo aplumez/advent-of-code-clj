@@ -3,7 +3,7 @@
             [clojure.string :as str]))
 
 (def input (-> (puzzle 2023 2)
-               (str/split #"\n")))
+               (str/split-lines)))
 
 (def parsed-input
   (let [parse-fn

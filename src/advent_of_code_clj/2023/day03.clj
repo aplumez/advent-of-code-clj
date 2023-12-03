@@ -4,71 +4,58 @@
             [clojure.string :as str]))
 
 (def input (-> (puzzle 2023 3)
-               (str/split #"\n")))
+               (str/split-lines)))
 
-(defn adjacent-cases
-  [number r-index c-index]
-  (for [x (range (dec c-index) (+ c-index (count number) 1))
-        y (range (dec r-index) (+ r-index 2))]
-    [y x]))
+(def not-sym #{\0 \1 \2 \3 \4 \5 \6 \7 \8 \9 \.})
+
+(defn parse-input
+  [input]
+  {:tiles (mapv vec input)
+   :all-numbers (mapv #(u/re-seq-pos #"\d+" %) input)})
+
+(defn is-part?
+  [tiles row-index col-index number]
+  (let [len (count number)]
+    (some identity (for [y (range (dec row-index) (+ row-index 2))
+                         x (range (dec col-index) (inc (+ col-index len)))]
+                     (not (not-sym (get-in tiles [y x] \.)))))))
+
+(defn find-parts
+  [{:keys [tiles all-numbers]}]
+  (for [row-index (range (count all-numbers))
+        {:keys [start group]} (get all-numbers row-index)
+        :when (is-part? tiles row-index start group)]
+    (parse-long group)))
 
 (def solution1
-  (let [row-fn
-        (fn [row-index row]
-          (->> (u/re-seq-pos #"\d+" row)
-               (map (fn [{:keys [start _end group]}]
-                      (let [cases (adjacent-cases group row-index start)
-                            adjacent? (some #(->> (get-in input % ".")
-                                                  (str)
-                                                  (re-find #"\d|\.")
-                                                  (not))
-                                            cases)]
-                        (when adjacent? group))))))]
-    (->> input
-         (map-indexed row-fn)
-         (flatten)
-         (remove nil?)
-         (map parse-long)
-         (reduce +))))
+  (->> input
+       (parse-input)
+       (find-parts)
+       (reduce +)))
 
-(defn find-adjacent-digits
-  [input y x]
-  (for [t-x (range (dec x) (+ x 2))
-        t-y (range (dec y) (+ y 2))
-        :let [val (str (get-in input [t-y t-x] "."))]]
-    (when (re-find #"\d" val) {:x t-x :y t-y})))
+(defn get-adjacent-gears
+  [tiles row-index col-index number]
+  (for [y (range (dec row-index) (+ row-index 2))
+        x (range (dec col-index) (inc (+ col-index (count number))))
+        :when (= (get-in tiles [y x]) \*)]
+    {:number (parse-long number)
+     :gear [y x]}))
 
-(defn find-complete-number
-  [input y x]
-  (let [[n1 n2 n3 n4 n5] (for [t-x (range (- x 2) (+ x 3))
-                               :let [val (str (get-in input [y t-x] "."))]]
-                           (when (re-find #"\d" val) val))
-        [n1 n2 n3 n4 n5] (if-not n2
-                           [nil nil n3 n4 n5]
-                           [n1 n2 n3 n4 n5])
-        [n1 n2 n3 n4 n5] (if-not n4
-                           [n1 n2 n3 nil nil]
-                           [n1 n2 n3 n4 n5])]
-    (parse-long (str n1 n2 n3 n4 n5))))
+(defn group-by-gears
+  [{:keys [tiles all-numbers]}]
+  (->> (for [row-index (range (count all-numbers))
+             {:keys [start group]} (get all-numbers row-index)]
+         (get-adjacent-gears tiles row-index start group))
+       (map first)
+       (remove nil?)
+       (group-by :gear)
+       (vals)
+       (map #(map :number %))))
 
 (def solution2
   (->> input
-       (map-indexed (fn [r-index row]
-                      (->> (u/re-seq-pos #"\*" row)
-                           (map #(hash-map :r-index r-index :match %)))))
-       (flatten)
-       (map (fn [{:keys [r-index match]}]
-              (when-let [start (get match :start)]
-                (find-adjacent-digits input r-index start))))
-       (map (fn [matches]
-              (->> matches
-                   (remove nil?)
-                   (map (fn [{:keys [x y]}]
-                          (find-complete-number input y x)))
-                   (set))))
+       (parse-input)
+       (group-by-gears)
        (remove #(< (count %) 2))
-       (map #(reduce * %))
+       (map #(apply * %))
        (reduce +)))
-
-
-;;[546563 91031374]
