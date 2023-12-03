@@ -1,4 +1,4 @@
-(ns advent-of-code-clj.day01
+(ns advent-of-code-clj.2023.day01
   (:require
    [advent-of-code-clj.core :refer [puzzle]]
    [clojure.string :as str]))
