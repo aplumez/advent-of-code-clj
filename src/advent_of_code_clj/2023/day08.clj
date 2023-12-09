@@ -3,23 +3,6 @@
             [clojure.math.numeric-tower :as math]
             [clojure.string :as str]))
 
-(def example-input "LR\n\n11A = (11B, XXX)\n11B = (XXX, 11Z)\n11Z = (11B, XXX)\n22A = (22B, XXX)\n22B = (22C, 22C)\n22C = (22Z, 22Z)\n22Z = (22B, 22B)\nXXX = (XXX, XXX)")
-
-(def example-directions (-> example-input
-                            (str/split-lines)
-                            (first)))
-
-(def example-nodes (->> (-> example-input
-                            (str/split-lines))
-                        (drop 2)
-                        (mapv (fn [line]
-                                (let [[node choices] (str/split line #" = ")
-                                      choices (str/replace choices #"\(|\)|\s" "")
-                                      [left right] (str/split choices #"\,")]
-                                  {:node node
-                                   :left left
-                                   :right right})))))
-
 (def directions (-> (puzzle 2023 8)
                     (str/split-lines)
                     (first)))
@@ -63,8 +46,6 @@
               next-node (if (= current-direction \L) left right)]
           (recur next-node (inc step)))))))
 
-(find-next-from-step "AAA" nodes #(str/includes? % "B") 1)
-
 (defn find-steps [node nodes size-limit]
   (loop [steps #{}
          ending-nodes []]
@@ -77,8 +58,6 @@
         (if (>= (count steps) size-limit)
           (conj steps next-step)
           (recur (conj steps next-step) (conj ending-nodes next-node)))))))
-
-(find-steps "22A" example-nodes 4)
 
 (let [starting-nodes (filter #(str/ends-with? (:node %) "A") nodes)
       indexes (for [starting-node starting-nodes]
