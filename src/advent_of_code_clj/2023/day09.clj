@@ -2,22 +2,16 @@
   (:require [advent-of-code-clj.core :refer [puzzle]]
             [clojure.string :as str]))
 
-(def input (->> (puzzle 2023 9)
-                (str/split-lines)
-                (mapv #(->> (str/split % #" ")
-                            (mapv parse-long)))))
+(def input (->> (str/split-lines (puzzle 2023 9))
+                (mapv #(mapv parse-long (str/split % #" ")))))
 
 (defn compute-jumps [seq]
-  (->> seq
-       (map-indexed (fn [index current-value]
-                      (when-let [last-value (get seq (dec index))]
-                        (- current-value last-value))))
+  (->> (map-indexed #(when-let [last-value (get seq (dec %1))] (- %2 last-value)) seq)
        (remove nil?)
        (vec)))
 
 (defn compute-jumps-history [seq]
-  (loop [history []
-         seq seq]
+  (loop [history [], seq seq]
     (if (every? zero? seq)
       (conj history seq)
       (recur (conj history seq) (compute-jumps seq)))))
@@ -37,8 +31,6 @@
   (->> (mapv #(-> (compute-jumps-history %) (find-prediction type)) input)
        (reduce +)))
 
-(def solution1
-  (solve :end))
+(def solution1 (solve :end))
 
-(def solution2
-  (solve :start))
+(def solution2 (solve :start))
