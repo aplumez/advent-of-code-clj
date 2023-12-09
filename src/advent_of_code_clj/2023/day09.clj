@@ -34,14 +34,14 @@
           (recur (inc index) line-prediction)
           line-prediction)))))
 
-(def solution1
+(defn solve [type]
   (->> (for [history input]
          (let [jumps-history (compute-jumps-history history)]
-           (find-prediction jumps-history :end)))
+           (find-prediction jumps-history type)))
        (reduce +)))
 
+(def solution1
+  (solve :end))
+
 (def solution2
-  (->> (for [history input]
-         (let [jumps-history (compute-jumps-history history)]
-           (find-prediction jumps-history :start)))
-       (reduce +)))
+  (solve :start))
