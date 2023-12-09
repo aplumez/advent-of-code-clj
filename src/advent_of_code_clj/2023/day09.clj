@@ -22,12 +22,14 @@
       (conj history seq)
       (recur (conj history seq) (compute-jumps seq)))))
 
-(defn find-prediction [jumps-history]
+(defn find-prediction [jumps-history type]
   (let [jumps-history (-> jumps-history reverse vec)]
     (loop [index 0
            last-prediction 0]
       (let [current-line (get jumps-history index)
-            line-prediction (+ (last current-line) last-prediction)]
+            line-prediction (case type
+                              :start (- (first current-line) last-prediction)
+                              :end (+ (last current-line) last-prediction))]
         (if (< (inc index) (count jumps-history))
           (recur (inc index) line-prediction)
           line-prediction)))))
@@ -35,21 +37,11 @@
 (def solution1
   (->> (for [history input]
          (let [jumps-history (compute-jumps-history history)]
-           (find-prediction jumps-history)))
+           (find-prediction jumps-history :end)))
        (reduce +)))
-
-(defn find-first-prediction [jumps-history]
-  (let [jumps-history (-> jumps-history reverse vec)]
-    (loop [index 0
-           last-prediction 0]
-      (let [current-line (get jumps-history index)
-            line-prediction (- (first current-line) last-prediction)]
-        (if (< (inc index) (count jumps-history))
-          (recur (inc index) line-prediction)
-          line-prediction)))))
 
 (def solution2
   (->> (for [history input]
          (let [jumps-history (compute-jumps-history history)]
-           (find-first-prediction jumps-history)))
+           (find-prediction jumps-history :start)))
        (reduce +)))
