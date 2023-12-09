@@ -24,8 +24,7 @@
 
 (defn find-prediction [jumps-history type]
   (let [jumps-history (-> jumps-history reverse vec)]
-    (loop [index 0
-           last-prediction 0]
+    (loop [index 0, last-prediction 0]
       (let [current-line (get jumps-history index)
             line-prediction (case type
                               :start (- (first current-line) last-prediction)
@@ -35,9 +34,7 @@
           line-prediction)))))
 
 (defn solve [type]
-  (->> (for [history input]
-         (let [jumps-history (compute-jumps-history history)]
-           (find-prediction jumps-history type)))
+  (->> (mapv #(-> (compute-jumps-history %) (find-prediction type)) input)
        (reduce +)))
 
 (def solution1
