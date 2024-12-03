@@ -18,4 +18,5 @@
 
 (def solution2 (-> input
                    (string/replace #"\s+" "") ;; <- This made me lose way too much time...
-                   (string/replace #"don't\(\)(.+?)(do\(\)|$)" "")))
+                   (string/replace #"don't\(\)(.+?)(do\(\)|$)" "")
+                   (parse-mul)))
